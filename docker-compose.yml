@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: optimeal_db
+    restart: always
+    environment:
+      POSTGRES_USER: optimeal_user
+      POSTGRES_PASSWORD: optimeal_password
+      POSTGRES_DB: optimeal_health_db
+    ports:
+      - "5432:5432"
+    networks:
+      - optimeal_network
+    volumes:
+      - optimeal_db_data:/var/lib/postgresql/data
+
+networks:
+  optimeal_network:
+    driver: bridge
+
+volumes:
+  optimeal_db_data:
