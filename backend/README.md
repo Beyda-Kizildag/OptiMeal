@@ -1,98 +1,42 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🍏 OptiMeal Backend - AI-Powered Nutrition & Health Tracking
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Bu dizin, OptiMeal projesinin **NestJS** ile geliştirilen sunucu tarafı mantığını ve veritabanı yönetimini barındırır. Projenin 3. haftasında temel güvenlik ve kullanıcı yönetim sistemi başarıyla kurulmuştur.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 3. Hafta: Kimlik Doğrulama ve Güvenlik Güncellemesi
 
-## Description
+Bu hafta yapılan geliştirmeler, sistemin en kritik parçası olan **Authentication (Auth)** katmanına odaklanmıştır:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 🛡️ Güvenlik Özellikleri
+- **JWT (JSON Web Token) Entegrasyonu:** Kullanıcı oturumlarını güvenli ve "stateless" (durum bilgisi saklamayan) bir şekilde yönetmek için `@nestjs/jwt` ve `passport-jwt` kullanıldı.
+- **Bcrypt Şifreleme:** Kullanıcı şifreleri veritabanına asla düz metin olarak kaydedilmez. `bcrypt` kütüphanesi ile yüksek güvenlikli bir şekilde "hash"lenerek saklanır.
+- **DTO (Data Transfer Object) Mimarisi:** Gelen isteklerin (Request) doğruluğunu kontrol etmek ve tip güvenliğini (Type Safety) sağlamak için `RegisterDto` ve `LoginDto` sınıfları oluşturuldu.
 
-## Project setup
+### 🏗️ Veritabanı Modelleri (TypeORM)
+- **User Entity:** Kullanıcının temel giriş bilgilerini tutan tablo.
+- **HealthProfile Entity:** Kullanıcının kronik rahatsızlıkları, boy, kilo ve yaş gibi verilerini tutan tablo.
+- **1:1 İlişki:** Her kullanıcının kendine ait tek bir sağlık profili olması için tablolar arası ilişki kuruldu.
 
-```bash
-$ npm install
-```
+### 🛣️ API Uç Noktaları (Endpoints)
+| Metot | URL | Açıklama |
+| :--- | :--- | :--- |
+| `POST` | `/auth/register` | Yeni bir kullanıcı kaydı oluşturur (Şifreyi hashler). |
+| `POST` | `/auth/login` | Kimlik bilgilerini doğrular ve bir `access_token` döner. |
 
-## Compile and run the project
+### 📸 API Testleri (Postman)
+Aşağıdaki ekran görüntüsü, `/auth/register` endpoint'ine gönderilen başarılı bir kayıt isteğini ve veritabanına hash'lenmiş şifre ile kaydedilen kullanıcı yanıtını göstermektedir:
 
-```bash
-# development
-$ npm run start
+![Postman Register Test](<img width="1149" height="682" alt="Screenshot 2026-03-23 212220" src="https://github.com/user-attachments/assets/f5ae3177-c213-4d8a-88b3-6531282541ff" />
+)
+![Postman Login Test](<img width="719" height="517" alt="Screenshot 2026-03-24 130840" src="https://github.com/user-attachments/assets/1412b229-5c70-4282-886b-f84eafc4c2b4" />
+)
 
-# watch mode
-$ npm run start:dev
+## 🛠️ Kurulum ve Çalıştırma
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+Backend projesini ayağa kaldırmak için ana dizindeki Docker konteynerlarının çalıştığından emin olun:
 
 ```bash
-# unit tests
-$ npm run test
+# Bağımlılıkları yükle
+npm install
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Geliştirme modunda başlat
+npm run start:dev
