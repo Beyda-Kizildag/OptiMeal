@@ -25,10 +25,10 @@ Bu hafta yapılan geliştirmeler, sistemin en kritik parçası olan **Authentica
 ### 📸 API Testleri (Postman)
 Aşağıdaki ekran görüntüsü, `/auth/register` endpoint'ine gönderilen başarılı bir kayıt isteğini ve veritabanına hash'lenmiş şifre ile kaydedilen kullanıcı yanıtını göstermektedir:
 
-![Postman Register Test](<img width="1149" height="682" alt="Screenshot 2026-03-23 212220" src="https://github.com/user-attachments/assets/f5ae3177-c213-4d8a-88b3-6531282541ff" />
-)
-![Postman Login Test](<img width="719" height="517" alt="Screenshot 2026-03-24 130840" src="https://github.com/user-attachments/assets/1412b229-5c70-4282-886b-f84eafc4c2b4" />
-)
+<img width="1149" height="682" alt="Screenshot 2026-03-23 212220" src="https://github.com/user-attachments/assets/f5ae3177-c213-4d8a-88b3-6531282541ff" />
+
+<img width="719" height="517" alt="Screenshot 2026-03-24 130840" src="https://github.com/user-attachments/assets/1412b229-5c70-4282-886b-f84eafc4c2b4" />
+
 
 ## 🛠️ Kurulum ve Çalıştırma
 
