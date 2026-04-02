@@ -22,3 +22,6 @@ Bu hafta, projenin güvenlik ve kullanıcı yönetimi altyapısı aşağıdaki �
 - [ ] Sağlık Profili (HealthProfile) Entity ve CRUD işlemleri.
 - [ ] Hastalık ve İntolerans Listesi API'ları.
 - [ ] React Frontend projesinin başlatılması ve Onboarding ekranları.
+ ### Postman Kontrolü
+  <img width="996" height="427" alt="Screenshot 2026-04-02 172730" src="https://github.com/user-attachments/assets/166533a3-90cf-4ca9-9f10-081420e4b632" />
+
