@@ -14,27 +14,26 @@ export class AuthService {
   ) {}
 
   // Şifreyi gizleyerek kullanıcı oluşturma
-async register(email: string, pass: string) {
+  async register(email: string, pass: string): Promise<User> {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(pass, salt);
-    
+
     const user = this.userRepository.create({
       email,
       password_hash: hashedPassword,
     });
-    
+
     return this.userRepository.save(user);
   }
 
   // Giriş kontrolü ve Token üretimi
-  async login(email: string, pass: string) {
+  async login(email: string, pass: string): Promise<string> {
     const user = await this.userRepository.findOne({ where: { email } });
-    
+
     if (user && (await bcrypt.compare(pass, user.password_hash))) {
       const payload = { sub: user.id, email: user.email };
-      return {
-        access_token: await this.jwtService.signAsync(payload),
-      };
+
+      return await this.jwtService.signAsync(payload);
     }
     throw new UnauthorizedException('E-posta veya şifre hatalı!');
   }
