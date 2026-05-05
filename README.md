@@ -5,7 +5,7 @@ Bu aşamada projenin veri güvenliği ve kişiselleştirme katmanı inşa edilmi
 ---
 
 ### 1. UUID Kimliklendirme Sistemi
-Geleneksel artan ID yapısı yerine modern ve güvenli UUID yapısı benimsenmiştir.
+ID yapısı yerine modern ve güvenli UUID yapısı benimsenmiştir.
 
 * **Güvenlik Katmanı:** Artan tam sayı (integer) ID yapısı tamamen terk edilerek **UUID (Universally Unique Identifier)** yapısına geçilmiştir.
 * **Veri Gizliliği:** Kullanıcıların hassas sağlık verilerine tahmin edilebilir ID'ler üzerinden erişilmesi (**IDOR - Insecure Direct Object Reference** riski) tamamen engellenmiştir.
