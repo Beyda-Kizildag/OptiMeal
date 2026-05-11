@@ -110,7 +110,7 @@ export function Features() {
           
           <div className="rounded-2xl overflow-hidden shadow-2xl">
             <ImageWithFallback 
-              src="https://images.unsplash.com/photo-1683348758702-5163a4ec3e81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjB1c2luZyUyMHNtYXJ0cGhvbmUlMjBoZWFsdGglMjBhcHB8ZW58MXx8fHwxNzc0MzI5Mjc2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              src="https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=1106&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               alt="Person using health app"
               className="w-full h-[400px] object-cover"
             />
