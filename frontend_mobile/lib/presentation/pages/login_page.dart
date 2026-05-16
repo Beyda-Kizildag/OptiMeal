@@ -1,107 +1,353 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
+import 'package:http/http.dart' as http;
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/api_constants.dart';
+import 'registration_flow_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  bool _showPassword = false;
+  String _language = 'EN';
+  bool _isLoading = false;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  final Map<String, Map<String, String>> _t = {
+    'EN': {
+      'welcome': 'Welcome to OptiMeal',
+      'subtitle': 'Sign in to continue your healthy journey',
+      'email': 'Email',
+      'password': 'Password',
+      'emailPlaceholder': 'Enter your email',
+      'passwordPlaceholder': 'Enter your password',
+      'forgotPassword': 'Forgot Password?',
+      'signIn': 'Sign In',
+      'orContinue': 'Or continue with',
+      'noAccount': "Don't have an account?",
+      'signUp': 'Sign Up',
+    },
+    'TR': {
+      'welcome': 'OptiMeal\'e Hoş Geldiniz',
+      'subtitle': 'Sağlıklı yolculuğunuza devam etmek için giriş yapın',
+      'email': 'E-posta',
+      'password': 'Şifre',
+      'emailPlaceholder': 'E-posta adresinizi girin',
+      'passwordPlaceholder': 'Şifrenizi girin',
+      'forgotPassword': 'Şifremi Unuttum?',
+      'signIn': 'Giriş Yap',
+      'orContinue': 'Veya şununla devam edin',
+      'noAccount': 'Hesabınız yok mu?',
+      'signUp': 'Kayıt Ol',
+    },
+  };
+
+  Future<void> _handleSignIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'pass': password,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final token = data['token'];
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${_t[_language]!['signIn']} Successful!')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login failed: ${response.body}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Ekran yüksekliğinin %30'u görsel için
-    final double topHeight = MediaQuery.of(context).size.height * 0.30;
+    final t = _t[_language]!;
+    final topHeight = MediaQuery.of(context).size.height * 0.30;
 
     return Scaffold(
+      backgroundColor: AppColors.offWhite,
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. Üst Kısım: Görsel Alanı
+            // Top Image Section
             Stack(
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
                   ),
                   child: Image.network(
-                    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1000', // Örnek sağlıklı içerik görseli
+                    'https://images.unsplash.com/photo-1760368104825-95f28a86118e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGhlYWx0aHklMjBpbmdyZWRpZW50cyUyMGNvbG9yZnVsfGVufDF8fHx8MTc3NDU1NjQyOHww&ixlib=rb-4.1.0&q=80&w=1080',
                     height: topHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
                 ),
-                // Dil Değiştirici (TR/EN)
+                // Language Switcher
                 Positioned(
                   top: 50,
-                  right: 20,
-                  child: _languageSwitcher(),
+                  right: 16,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withOpacity(0.5)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                        )
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _language,
+                        icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.deepNavy),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.deepNavy),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() => _language = newValue);
+                          }
+                        },
+                        items: <String>['EN', 'TR'].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.language, size: 14, color: AppColors.deepNavy),
+                                const SizedBox(width: 4),
+                                Text(value),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
 
-            // 2. Alt Kısım: Giriş Formu
+            // Content Section
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    "OptiMeal",
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.deepNavy),
-                    textAlign: TextAlign.center,
+                  // Brand Header
+                  Text(
+                    t['welcome']!,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.deepNavy),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 8),
+                  Text(
+                    t['subtitle']!,
+                    style: const TextStyle(fontSize: 15, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 32),
 
-                  // E-posta Alanı
-                  const TextField(
-                    decoration: InputDecoration(
-                      hintText: 'E-posta',
-                      prefixIcon: Icon(Icons.email_outlined),
+                  // Form Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Email Input
+                        Text(t['email']!, style: const TextStyle(fontSize: 14, color: AppColors.deepNavy)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            hintText: t['emailPlaceholder'],
+                            hintStyle: const TextStyle(color: Colors.black38, fontSize: 15),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.natureGreen, width: 2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Password Input
+                        Text(t['password']!, style: const TextStyle(fontSize: 14, color: AppColors.deepNavy)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: !_showPassword,
+                          decoration: InputDecoration(
+                            hintText: t['passwordPlaceholder'],
+                            hintStyle: const TextStyle(color: Colors.black38, fontSize: 15),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.natureGreen, width: 2),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showPassword ? Icons.visibility_off : Icons.visibility,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(() => _showPassword = !_showPassword),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Forgot Password Link
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(50, 30),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              t['forgotPassword']!,
+                              style: const TextStyle(fontSize: 14, color: AppColors.natureGreen),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Sign In Button
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleSignIn,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.natureGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : Text(
+                                  t['signIn']!,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Şifre Alanı
-                  const TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'Şifre',
-                      prefixIcon: Icon(Icons.lock_outline),
-                    ),
+                  const SizedBox(height: 24),
+
+                  // Divider
+                  Row(
+                    children: [
+                      Expanded(child: Container(height: 1, color: Colors.grey.shade300)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(t['orContinue']!, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                      ),
+                      Expanded(child: Container(height: 1, color: Colors.grey.shade300)),
+                    ],
                   ),
+                  const SizedBox(height: 24),
 
-                  // Şifremi Unuttum
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text("Şifremi Unuttum?", style: TextStyle(color: AppColors.natureGreen)),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Giriş Butonu
-                  ElevatedButton(
-                    onPressed: () {
-                      // Burada Onboarding ekranına yönlendirme yapılacak [cite: 47]
-                    },
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                    child: const Text("Giriş Yap"),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Center(child: Text("veya şununla devam et")),
-                  const SizedBox(height: 20),
-
-                  // Sosyal Giriş Butonları
+                  // Social Login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _socialButton(Icons.g_mobiledata, Colors.red),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 16),
                       _socialButton(Icons.apple, Colors.black),
                     ],
                   ),
+                  const SizedBox(height: 24),
+
+                  // Sign Up Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(t['noAccount']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const RegistrationFlowPage()));
+                        },
+                        child: Text(
+                          t['signUp']!,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.deepNavy),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -111,25 +357,26 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _languageSwitcher() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Text("TR | EN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-    );
-  }
-
   Widget _socialButton(IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
+        color: Colors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Icon(icon, size: 30, color: color),
+      child: IconButton(
+        icon: Icon(icon, size: 30, color: color),
+        onPressed: () {},
+      ),
     );
   }
 }

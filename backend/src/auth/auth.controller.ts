@@ -32,7 +32,7 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000, // 1 gün
     });
 
-    return { message: 'Giriş başarılı' };
+    return { message: 'Giriş başarılı', token: token };
   }
 
   @Post('register')
