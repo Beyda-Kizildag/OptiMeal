@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/api_constants.dart';
+import 'home_page.dart';
 
 class RegistrationFlowPage extends StatefulWidget {
   const RegistrationFlowPage({super.key});
@@ -225,7 +226,10 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registration & Profile Saved Successfully!')),
           );
-          Navigator.pop(context); // Go back to login or redirect to home
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomePage(token: _token!, language: _language)),
+          );
         }
       } else {
         throw Exception('Failed to save profile: ${response.body}');

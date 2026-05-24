@@ -40,4 +40,18 @@ export class HealthService {
 
     return await this.healthProfileRepository.save(profile);
   }
+
+  async getProfile(userId: string) {
+    const profile = await this.healthProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'], // to get user email
+    });
+    
+    if (!profile) {
+      // return empty structure if not found
+      return { chronicDiseases: [], intolerances: [], user: { email: 'Kullanıcı' }, age: 0, height: 0, weight: 0 };
+    }
+    
+    return profile;
+  }
 }

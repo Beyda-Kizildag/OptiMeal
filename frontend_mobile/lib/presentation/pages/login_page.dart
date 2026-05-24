@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/api_constants.dart';
 import 'registration_flow_page.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -73,6 +74,10 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${_t[_language]!['signIn']} Successful!')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomePage(token: token, language: _language)),
           );
         }
       } else {
