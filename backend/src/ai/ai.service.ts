@@ -56,13 +56,18 @@ export class AiService implements OnModuleInit {
     ]);
   }
 
-  async chat(userId: string, message: string): Promise<string> {
+  async chat(userId: string, message: string, history?: { role: string; content: string }[]): Promise<string> {
     const profile = await this.healthService.getProfile(userId);
     
     // Format user profile
     const diseases = profile.chronicDiseases?.join(', ') || 'None';
     const intolerances = profile.intolerances?.join(', ') || 'None';
     const profileContext = `User Profile - Diseases: ${diseases}, Intolerances: ${intolerances}`;
+
+    let historyText = 'No previous chat history.';
+    if (history && history.length > 0) {
+      historyText = history.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join('\n');
+    }
 
     const prompt = PromptTemplate.fromTemplate(`
 You are a helpful nutrition and health assistant for the OptiMeal application.
@@ -75,6 +80,9 @@ Knowledge Base Context: {context}
 
 User Profile: {profileContext}
 
+Chat History:
+{historyText}
+
 Question: {question}
 
 Helpful Answer:`);
@@ -85,6 +93,7 @@ Helpful Answer:`);
       {
         context: this.vectorStore.asRetriever().pipe(formatDocs),
         profileContext: () => profileContext,
+        historyText: () => historyText,
         question: new RunnablePassthrough(),
       },
       prompt,
@@ -93,5 +102,46 @@ Helpful Answer:`);
     ]);
 
     return await chain.invoke(message);
+  }
+
+  async generateRecipe(userId: string): Promise<any> {
+    const profile = await this.healthService.getProfile(userId);
+    const diseases = profile.chronicDiseases?.join(', ') || 'None';
+    const intolerances = profile.intolerances?.join(', ') || 'None';
+    
+    const promptText = `
+You are an expert nutritionist AI. Generate a personalized, healthy recipe for a user with the following profile:
+Diseases: ${diseases}
+Intolerances: ${intolerances}
+
+Ensure the recipe is strictly safe for their conditions and intolerances.
+Respond ONLY with a valid JSON object matching this structure (no markdown tags, just the raw JSON object):
+{
+  "title": "Recipe Name",
+  "time": "15 min",
+  "tags": ["Anti-inflammatory", "Low GI"],
+  "description": "Brief description of the meal and why it's good for them."
+}
+`;
+    
+    const result = await this.chatModel.invoke(promptText);
+    let content = result.content as string;
+    
+    const match = content.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+    if (match) {
+      content = match[1];
+    }
+    
+    try {
+      return JSON.parse(content);
+    } catch(e) {
+      console.error("JSON parse error for AI recipe", e);
+      return {
+        title: "Healthy Custom Bowl",
+        time: "10 min",
+        tags: ["Fresh", "Customized"],
+        description: "A customized fresh meal based on your health profile."
+      };
+    }
   }
 }

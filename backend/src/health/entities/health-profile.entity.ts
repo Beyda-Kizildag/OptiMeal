@@ -17,8 +17,18 @@ export class HealthProfile {
 
   @Column('text', { array: true, default: [] })
   chronicDiseases: string[]; // Kronik rahatsızlıklar listesi
+
   @Column('text', { array: true, default: [] })
   intolerances: string[];
+
+  @Column('text', { array: true, default: [] })
+  pastIllnesses: string[]; // Diğer dosyadan taşındı
+
+  @Column({ default: 0 })
+  lastAnalysisScore: number; // Sağlık karnesi puanı (Diğer dosyadan taşındı)
+
+  @Column('text', { array: true, default: [] })
+  badges: string[];
 
   @OneToOne(() => User, (user) => user.healthProfile, { onDelete: 'CASCADE' })
   @JoinColumn()

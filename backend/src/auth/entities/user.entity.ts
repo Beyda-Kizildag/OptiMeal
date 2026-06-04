@@ -5,7 +5,7 @@ import {
   OneToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { HealthProfile } from '../../profile/entities/health-profile.entity';
+import { HealthProfile } from '../../health/entities/health-profile.entity';
 
 @Entity('users')
 export class User {
@@ -14,6 +14,9 @@ export class User {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ nullable: true })
+  name: string;
 
   @Column()
   password_hash: string; // Şifreleri hash'leyerek saklama (Güvenlik)

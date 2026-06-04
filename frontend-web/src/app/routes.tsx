@@ -5,6 +5,9 @@ import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { Onboarding } from './pages/onboarding';
 import { DesignSystem } from './pages/DesignSystem';
+import { Dashboard } from './pages/Dashboard';
+import { Badges } from './pages/Badges';
+import { ComingSoon } from './pages/ComingSoon';
 
 export const router = createBrowserRouter([
   {
@@ -32,5 +35,29 @@ export const router = createBrowserRouter([
   {
     path: '/onboarding',
     element: <Onboarding />
+  },
+  {
+    path: '/dashboard',
+    element: <Dashboard />
+  },
+  {
+    path: '/dashboard/badges',
+    element: <Badges />
+  },
+  {
+    path: '/dashboard/recipes',
+    element: <ComingSoon title="Recipe Generator" description="AI-powered recipe generation is coming soon! Create personalized recipes based on your health profile." />
+  },
+  {
+    path: '/dashboard/health',
+    element: <ComingSoon title="Health Report" description="Comprehensive health analytics and reports are coming soon! Track your progress over time." />
+  },
+  {
+    path: '/dashboard/community',
+    element: <ComingSoon title="Community" description="Connect with others on their health journey! Share recipes, tips, and support." />
+  },
+  {
+    path: '/dashboard/settings',
+    element: <ComingSoon title="Settings" description="Customize your OptiMeal experience. Update your profile, preferences, and more." />
   }
 ]);

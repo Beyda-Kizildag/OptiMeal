@@ -32,12 +32,12 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000, // 1 gün
     });
 
-    return { message: 'Giriş başarılı', token: token };
+    return { message: 'Giriş başarılı', access_token: token };
   }
 
   @Post('register')
   signUp(@Body() signUpDto: SignUpDto) {
     console.log('Gelen Veri:', signUpDto);
-    return this.authService.register(signUpDto.email, signUpDto.pass);
+    return this.authService.register(signUpDto.name, signUpDto.email, signUpDto.pass);
   }
 }

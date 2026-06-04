@@ -88,6 +88,7 @@ export function Onboarding() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         age: Number(healthMetrics.age),
@@ -99,7 +100,7 @@ export function Onboarding() {
                 });
 
                 if (response.ok) {
-                    navigate('/');
+                    navigate('/dashboard');
                 } else {
                     const error = await response.json();
                     alert("Kayıt sırasında bir hata oluştu: " + (error.message || "Bilinmeyen hata"));

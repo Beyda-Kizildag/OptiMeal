@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import { AddDocumentDto } from './dto/add-document.dto';
@@ -12,8 +12,14 @@ export class AiController {
   @Post('chat')
   async chat(@Request() req, @Body() chatRequest: ChatRequestDto) {
     return {
-      reply: await this.aiService.chat(req.user.id, chatRequest.message),
+      reply: await this.aiService.chat(req.user.id, chatRequest.message, chatRequest.history),
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('recipe')
+  async getRecipe(@Request() req) {
+    return await this.aiService.generateRecipe(req.user.id);
   }
 
   @Post('documents')

@@ -27,7 +27,7 @@ export function SignUp() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, pass: formData.password }),
+        body: JSON.stringify({ name: formData.name, email: formData.email, pass: formData.password }),
       });
       
       if (!response.ok) {
@@ -42,6 +42,8 @@ export function SignUp() {
       });
 
       if (loginResponse.ok) {
+        const data = await loginResponse.json();
+        localStorage.setItem('token', data.access_token);
         navigate('/onboarding');
       } else {
         alert('Kayıt başarılı! Lütfen giriş yapın.');

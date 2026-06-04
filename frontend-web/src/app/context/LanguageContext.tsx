@@ -17,8 +17,14 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('tr');
   
-  const tFn = (path: string) => {
-    return path.split('.').reduce((obj: any, key) => obj && obj[key], translations[language]) || path;
+  const tFn = (path: string, args?: Record<string, string>) => {
+    let text = path.split('.').reduce((obj: any, key) => obj && obj[key], translations[language]) || path;
+    if (typeof text === 'string' && args) {
+      Object.entries(args).forEach(([k, v]) => {
+        text = text.replace(new RegExp(`{${k}}`, 'g'), v);
+      });
+    }
+    return text;
   };
 
   const t = Object.assign(tFn, translations[language]);

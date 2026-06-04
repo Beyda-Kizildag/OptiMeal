@@ -1,6 +1,10 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, IsString } from 'class-validator';
 
 export class SignUpDto {
+  @IsString({ message: 'İsim geçerli bir metin olmalıdır.' })
+  @IsNotEmpty({ message: 'İsim alanı boş bırakılamaz.' })
+  name!: string;
+
   @IsEmail({}, { message: 'Geçerli bir e-posta adresi giriniz.' })
   email!: string;
 

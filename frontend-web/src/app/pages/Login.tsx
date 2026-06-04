@@ -24,7 +24,27 @@ export function Login() {
         throw new Error('Giriş başarısız oldu');
       }
       
-      // Navigate to onboarding
+      const data = await response.json();
+      localStorage.setItem('token', data.access_token);
+      
+      try {
+        const profileRes = await fetch('/api/health/profile', {
+          headers: { 'Authorization': `Bearer ${data.access_token}` }
+        });
+        
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          // Eğer profil bilgisi varsa (örn. age girilmişse veya chronicDiseases doluysa) dashboard'a yönlendir
+          if (profile && (profile.age > 0 || (profile.chronicDiseases && profile.chronicDiseases.length > 0))) {
+            navigate('/dashboard');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check profile status:', err);
+      }
+      
+      // Navigate to onboarding if no valid profile exists
       navigate('/onboarding');
     } catch (error) {
       console.error('Login error:', error);
