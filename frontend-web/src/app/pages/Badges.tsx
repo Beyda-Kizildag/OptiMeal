@@ -52,7 +52,7 @@ export function Badges() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userBadges.map((badge, index) => (
-              <BadgeCard key={index} {...badge} title={t(`badges.${badge.title.replace(/\s+/g, '')}`) || badge.title} description={t(`badges.desc_${index}`) || badge.description} />
+              <BadgeCard key={index} {...badge} title={t(`badges.${badge.title.replace(/[-\s]+/g, '')}`) || badge.title} description={t(`badges.desc_${index}`) || badge.description} />
             ))}
           </div>
         </div>

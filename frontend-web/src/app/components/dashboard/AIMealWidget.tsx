@@ -11,7 +11,7 @@ interface Recipe {
 }
 
 export function AIMealWidget() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,7 +21,7 @@ export function AIMealWidget() {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const res = await fetch('/api/ai/recipe', {
+        const res = await fetch(`/api/ai/recipe?lang=${language}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -36,7 +36,7 @@ export function AIMealWidget() {
       }
     }
     fetchRecipe();
-  }, []);
+  }, [language]);
 
   const displayTitle = recipe?.title || t('dashboard.diabetesFriendlyBreakfast');
   const displayDesc = recipe?.description || t('dashboard.oatmealWithBerries');

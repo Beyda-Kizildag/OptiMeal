@@ -26,9 +26,9 @@ export function Sidebar() {
     <aside className="w-20 bg-card border-r-2 border-border flex flex-col items-center py-6 gap-2">
       {/* Logo */}
       <div className="mb-8">
-        <div className="w-12 h-12 bg-gradient-to-br from-primary to-mint-green rounded-xl flex items-center justify-center">
-          <span className="text-2xl">🥗</span>
-        </div>
+        <Link to="/dashboard" className="block p-1 hover:opacity-80 transition-opacity">
+          <img src="/logo.png" alt="OptiMeal Logo" className="w-12 h-12 object-cover rounded-xl shadow-sm" />
+        </Link>
       </div>
 
       {/* Navigation */}

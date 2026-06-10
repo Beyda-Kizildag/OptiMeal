@@ -8,6 +8,8 @@ import { DesignSystem } from './pages/DesignSystem';
 import { Dashboard } from './pages/Dashboard';
 import { Badges } from './pages/Badges';
 import { ComingSoon } from './pages/ComingSoon';
+import { Recipes } from './pages/Recipes';
+import { Settings } from './pages/Settings';
 
 export const router = createBrowserRouter([
   {
@@ -46,7 +48,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard/recipes',
-    element: <ComingSoon title="Recipe Generator" description="AI-powered recipe generation is coming soon! Create personalized recipes based on your health profile." />
+    element: <Recipes />
   },
   {
     path: '/dashboard/health',
@@ -58,6 +60,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard/settings',
-    element: <ComingSoon title="Settings" description="Customize your OptiMeal experience. Update your profile, preferences, and more." />
+    element: <Settings />
   }
 ]);

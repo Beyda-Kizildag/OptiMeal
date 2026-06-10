@@ -11,10 +11,8 @@ export function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl text-foreground">OptiMeal</span>
+            <img src="/logo.png" alt="OptiMeal Logo" className="w-10 h-10 object-cover rounded-xl shadow-sm" />
+            <span className="text-xl font-semibold text-foreground tracking-tight">OptiMeal</span>
           </Link>
           
           {/* Desktop Navigation */}

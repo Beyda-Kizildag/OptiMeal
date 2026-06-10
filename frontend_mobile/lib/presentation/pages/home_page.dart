@@ -4,6 +4,10 @@ import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import 'dart:math' as math;
 import 'chat_page.dart';
+import '../../core/services/notification_service.dart';
+
+import 'profile_view.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -17,9 +21,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _activeTab = 'home';
+  late String _currentLanguage;
   bool _isLoading = true;
   String _userName = '';
+  String _userEmail = '';
   List<String> _healthConditions = [];
+  List<String> _userIntolerances = [];
   final int _healthScore = 70; 
 
   late Map<String, dynamic> _t;
@@ -47,6 +54,8 @@ class _HomePageState extends State<HomePage> {
       'aiAssistantDesc': 'Your healthy nutrition assistant will be here',
       'backToHome': 'Back to Home',
       'profileDesc': 'Your profile settings will be here',
+      'notificationTitle': 'Energy Drop Warning 📉',
+      'notificationBody': 'Your energy might drop around 3 PM. Time for a healthy snack!',
     },
     'TR': {
       'greeting': 'Merhaba',
@@ -70,6 +79,8 @@ class _HomePageState extends State<HomePage> {
       'aiAssistantDesc': 'Sağlıklı beslenme asistanınız burada olacak',
       'backToHome': 'Ana Sayfaya Dön',
       'profileDesc': 'Profil ayarlarınız burada olacak',
+      'notificationTitle': 'Enerji Düşüşü Uyarısı 📉',
+      'notificationBody': 'Saat 15:00 civarı enerjiniz düşebilir. Sağlıklı bir atıştırmalık zamanı geldi!',
     },
   };
 
@@ -98,8 +109,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _t = _translations[widget.language] ?? _translations['TR']!;
+    _currentLanguage = widget.language;
+    _t = _translations[_currentLanguage] ?? _translations['TR']!;
     _fetchProfile();
+
+    // Init Notification Service and trigger simulated alert
+    final notificationService = NotificationService();
+    notificationService.init().then((_) {
+      notificationService.showSimulatedAlert(
+        _t['notificationTitle'],
+        _t['notificationBody'],
+      );
+    });
   }
 
   Future<void> _fetchProfile() async {
@@ -121,11 +142,14 @@ class _HomePageState extends State<HomePage> {
             : 'Kullanıcı';
 
         final conditions = List<String>.from(data['chronicDiseases'] ?? []);
+        final intolerancesList = List<String>.from(data['intolerances'] ?? []);
 
         if (mounted) {
           setState(() {
             _userName = name;
+            _userEmail = userEmail;
             _healthConditions = conditions;
+            _userIntolerances = intolerancesList;
             _isLoading = false;
           });
         }
@@ -138,9 +162,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _handleLanguageChanged(String newLanguage) {
+    setState(() {
+      _currentLanguage = newLanguage;
+      _t = _translations[_currentLanguage] ?? _translations['TR']!;
+    });
+  }
+
   void _handleActionCardClick(String cardText) {
     print('AI Action triggered: $cardText');
     setState(() => _activeTab = 'chat');
+  }
+
+  void _handleLogout() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
   }
 
   @override
@@ -173,13 +211,26 @@ class _HomePageState extends State<HomePage> {
           
           // Overlays
           if (_activeTab == 'chat') ChatPage(token: widget.token, onBack: () => setState(() => _activeTab = 'home')),
-          if (_activeTab == 'profile') _buildPlaceholderView(_t['profile'], _t['profileDesc'], Icons.person),
+          if (_activeTab == 'profile')
+            ProfileView(
+              token: widget.token,
+              userName: _userName,
+              email: _userEmail,
+              chronicDiseases: _healthConditions,
+              intolerances: _userIntolerances,
+              language: _currentLanguage,
+              onBack: () => setState(() => _activeTab = 'home'),
+              onLogout: _handleLogout,
+              onProfileUpdated: _fetchProfile,
+              onLanguageChanged: _handleLanguageChanged,
+            ),
           
           // Bottom Navigation
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _buildBottomNav(),
-          ),
+          if (_activeTab != 'chat')
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildBottomNav(),
+            ),
         ],
       ),
     );
@@ -387,7 +438,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHealthProfileBadges() {
-    final Map<String, String> labels = widget.language == 'EN' ? _conditionLabelsEN : _conditionLabelsTR;
+    final Map<String, String> labels = _currentLanguage == 'EN' ? _conditionLabelsEN : _conditionLabelsTR;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -567,45 +618,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPlaceholderView(String title, String desc, IconData icon) {
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80, height: 80,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(colors: [Color(0xFF2D5A27), Color(0xFF3d7a37)]),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 40),
-                ),
-                const SizedBox(height: 16),
-                Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
-                const SizedBox(height: 8),
-                Text(desc, style: const TextStyle(fontSize: 14, color: Colors.black54)),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () => setState(() => _activeTab = 'home'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D5A27),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(_t['backToHome'], style: const TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class CircleProgressPainter extends CustomPainter {

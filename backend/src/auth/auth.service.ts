@@ -50,7 +50,45 @@ export class AuthService {
       throw new UnauthorizedException('E-posta veya şifre hatalı!');
     }
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email, name: user.name };
     return await this.jwtService.signAsync(payload);
+  }
+
+  async getUser(userId: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+    return user;
+  }
+
+  async updatePreferences(userId: string, preferences: any): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+
+    user.preferences = { ...user.preferences, ...preferences };
+    return await this.userRepository.save(user);
+  }
+
+  async changePassword(userId: string, currentPass: string, newPass: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+
+    const isMatch = await bcrypt.compare(currentPass, user.password_hash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Mevcut şifre yanlış!');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(newPass, salt);
+
+    user.password_hash = hashedPassword;
+    await this.userRepository.save(user);
+  }
+
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+
+    // Due to ON DELETE CASCADE on HealthProfile, ChatHistory and AiMemory, this will clean up linked records.
+    await this.userRepository.remove(user);
   }
 }

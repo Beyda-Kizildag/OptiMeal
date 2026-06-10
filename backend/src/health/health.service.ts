@@ -44,12 +44,24 @@ export class HealthService {
   async getProfile(userId: string) {
     const profile = await this.healthProfileRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['user'], // to get user email
+      relations: ['user'], // to get user email and name
     });
     
     if (!profile) {
-      // return empty structure if not found
-      return { chronicDiseases: [], intolerances: [], user: { email: 'Kullanıcı' }, age: 0, height: 0, weight: 0 };
+      // Profil yoksa bile kullanıcının kendi tablosundan (User) adını ve e-postasını alalım
+      const user = await this.healthProfileRepository.manager.getRepository('User').findOne({ where: { id: userId } });
+      
+      return { 
+        chronicDiseases: [], 
+        intolerances: [], 
+        user: { 
+          email: user?.['email'] || '', 
+          name: user?.['name'] || '' 
+        }, 
+        age: 0, 
+        height: 0, 
+        weight: 0 
+      };
     }
     
     return profile;

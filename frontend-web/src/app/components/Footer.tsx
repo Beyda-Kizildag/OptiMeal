@@ -10,10 +10,8 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Heart className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl">OptiMeal</span>
+              <img src="/logo.png" alt="OptiMeal Logo" className="w-8 h-8 object-cover rounded-md" />
+              <span className="text-xl font-semibold tracking-tight">OptiMeal</span>
             </div>
             <p className="text-sm text-background/70">
               {t.footer.desc}

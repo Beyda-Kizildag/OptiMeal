@@ -6,7 +6,7 @@ class ApiConstants {
   // bilgisayarınızın Wi-Fi IPv4 adresini (örneğin 'http://192.168.1.45:3000') 
   // aşağıya yazmalısınız. Telefon ve bilgisayar aynı Wi-Fi'da olmalıdır.
   
-  static const String _physicalDeviceIp = 'http://192.168.1.173:3000'; // Kendi IP'nizi yazın
+  static const String _physicalDeviceIp = 'http://192.168.1.172:3000'; // Kendi IP'nizi yazın
   
   static String get baseUrl {
     if (kIsWeb) {

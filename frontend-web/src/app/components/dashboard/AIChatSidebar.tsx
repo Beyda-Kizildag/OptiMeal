@@ -25,9 +25,38 @@ export function AIChatSidebar() {
     }
   ];
 
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = document.cookie.split('; ').find(row => row.startsWith('access_token='))?.split('=')[1] || localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/ai/chat/history', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const historyMessages: Message[] = data.map((m: any) => ({
+              id: m.id,
+              type: m.role === 'user' ? 'user' : 'ai',
+              text: m.content,
+              timestamp: new Date(m.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            }));
+            setMessages([...initialMessages, ...historyMessages]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching history', err);
+      }
+    };
+    
+    fetchHistory();
+  }, []);
 
   const handleSend = useCallback(async (customMessage?: string) => {
     const textToSend = typeof customMessage === 'string' ? customMessage : inputValue;
@@ -47,11 +76,7 @@ export function AIChatSidebar() {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const history = messages.map(m => ({
-        role: m.type === 'ai' ? 'model' : 'user',
-        content: m.text
-      }));
+      const token = document.cookie.split('; ').find(row => row.startsWith('access_token='))?.split('=')[1] || localStorage.getItem('token');
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -60,8 +85,7 @@ export function AIChatSidebar() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          message: userMessage.text,
-          history: history
+          message: userMessage.text
         })
       });
 

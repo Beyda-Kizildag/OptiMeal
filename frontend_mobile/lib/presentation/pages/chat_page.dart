@@ -57,15 +57,49 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _messages.add(
-      Message(
-        id: '1',
-        isUser: false,
-        text: 'Merhaba! Ben OptiMeal AI Asistanınızım. Sağlıklı beslenme konusunda size nasıl yardımcı olabilirim?',
-        timestamp: DateTime.now(),
-        motivationalFeedback: 'Sağlıklı seçimler yapmaya hazırsınız!',
-      ),
-    );
+    _fetchHistory();
+  }
+
+  Future<void> _fetchHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/ai/chat/history'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as List;
+        final history = data.map((item) => Message(
+          id: item['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          isUser: item['role'] == 'user',
+          text: item['content'],
+          timestamp: DateTime.parse(item['createdAt']),
+        )).toList();
+
+        if (mounted) {
+          setState(() {
+            _messages.clear();
+            if (history.isEmpty) {
+              _messages.add(
+                Message(
+                  id: '1',
+                  isUser: false,
+                  text: 'Merhaba! Ben OptiMeal AI Asistanınızım. Sağlıklı beslenme konusunda size nasıl yardımcı olabilirim?',
+                  timestamp: DateTime.now(),
+                  motivationalFeedback: 'Sağlıklı seçimler yapmaya hazırsınız!',
+                ),
+              );
+            } else {
+              _messages.addAll(history);
+            }
+          });
+          _scrollToBottom();
+        }
+      }
+    } catch (e) {
+      print('Failed to fetch history: $e');
+    }
   }
 
   void _scrollToBottom() {

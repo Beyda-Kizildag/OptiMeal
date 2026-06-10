@@ -28,6 +28,7 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
 
   // Step 2 State
   List<String> _selectedConditions = [];
+  List<String> _selectedIntolerances = [];
   String _searchQuery = '';
   
   // We'll store the token received after register+login to send health profile
@@ -64,6 +65,12 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
       'asthma': 'Asthma',
       'heartDisease': 'Heart Disease',
       'lactoseIntolerance': 'Lactose Intolerance',
+      'intolerancesTitle': 'Food Intolerances & Allergies',
+      'soy': 'Soy',
+      'shellfish': 'Shellfish',
+      'nuts': 'Tree Nuts / Peanuts',
+      'eggs': 'Eggs',
+      'fish': 'Fish',
       'insightsTitle': 'Your Personalized AI Assistant',
       'insightsSubtitle': 'Powered by advanced nutrition intelligence',
       'aiInsightLabel': 'AI-Powered Recommendations',
@@ -101,6 +108,12 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
       'asthma': 'Astım',
       'heartDisease': 'Kalp Hastalığı',
       'lactoseIntolerance': 'Laktoz İntoleransı',
+      'intolerancesTitle': 'Gıda İntoleransları ve Alerjiler',
+      'soy': 'Soya',
+      'shellfish': 'Kabuklu Deniz Mahsulleri',
+      'nuts': 'Kuruyemiş / Fıstık',
+      'eggs': 'Yumurta',
+      'fish': 'Balık',
       'insightsTitle': 'Kişiselleştirilmiş Yapay Zeka Asistanınız',
       'insightsSubtitle': 'Gelişmiş beslenme zekası tarafından desteklenmektedir',
       'aiInsightLabel': 'Yapay Zeka Destekli Öneriler',
@@ -121,14 +134,23 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
     {'id': 'lactose', 'labelKey': 'lactoseIntolerance', 'icon': Icons.water_drop},
   ];
 
+  final List<Map<String, dynamic>> _intolerances = [
+    {'id': 'soy', 'labelKey': 'soy', 'icon': Icons.spa},
+    {'id': 'shellfish', 'labelKey': 'shellfish', 'icon': Icons.set_meal},
+    {'id': 'nuts', 'labelKey': 'nuts', 'icon': Icons.park},
+    {'id': 'eggs', 'labelKey': 'eggs', 'icon': Icons.egg},
+    {'id': 'fish', 'labelKey': 'fish', 'icon': Icons.phishing},
+  ];
+
   Future<void> _handleStep1Continue() async {
+    final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final age = _ageController.text;
     final height = _heightController.text;
     final weight = _weightController.text;
 
-    if (email.isEmpty || password.isEmpty || age.isEmpty || height.isEmpty || weight.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || age.isEmpty || height.isEmpty || weight.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields')),
       );
@@ -143,6 +165,7 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
         Uri.parse('${ApiConstants.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          'name': name,
           'email': email,
           'pass': password,
         }),
@@ -159,7 +182,7 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
 
         if (loginRes.statusCode == 200 || loginRes.statusCode == 201) {
           final data = jsonDecode(loginRes.body);
-          _token = data['token'];
+          _token = data['access_token'] ?? data['token'];
           setState(() {
             _currentStep = 2;
           });
@@ -186,6 +209,16 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
         _selectedConditions.remove(conditionId);
       } else {
         _selectedConditions.add(conditionId);
+      }
+    });
+  }
+
+  void _handleIntoleranceToggle(String intoleranceId) {
+    setState(() {
+      if (_selectedIntolerances.contains(intoleranceId)) {
+        _selectedIntolerances.remove(intoleranceId);
+      } else {
+        _selectedIntolerances.add(intoleranceId);
       }
     });
   }
@@ -217,7 +250,7 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
           'height': int.parse(_heightController.text),
           'weight': int.parse(_weightController.text),
           'chronicDiseases': _selectedConditions,
-          'intolerances': [], // or map some conditions here if needed
+          'intolerances': _selectedIntolerances,
         }),
       );
 
@@ -486,6 +519,40 @@ class _RegistrationFlowPageState extends State<RegistrationFlowPage> {
             );
           },
         ),
+        
+        const SizedBox(height: 32),
+        Text(t['intolerancesTitle'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87)),
+        const SizedBox(height: 16),
+        
+        Wrap(
+          spacing: 12, runSpacing: 12,
+          children: _intolerances.map((c) {
+            final isSelected = _selectedIntolerances.contains(c['id']);
+            return GestureDetector(
+              onTap: () => _handleIntoleranceToggle(c['id']),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF2D5A27) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? const Color(0xFF2D5A27) : Colors.grey.shade300),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(c['icon'], size: 18, color: isSelected ? Colors.white : Colors.black54),
+                    const SizedBox(width: 8),
+                    Text(
+                      t[c['labelKey']],
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+
         const SizedBox(height: 32),
         ElevatedButton(
           onPressed: _handleStep2Continue,

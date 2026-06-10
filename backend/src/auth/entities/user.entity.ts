@@ -24,6 +24,9 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ type: 'jsonb', nullable: true, default: {} })
+  preferences: any;
+
   // Her kullanıcının sadece bir sağlık profili olabilir (1:1 İlişki)
   @OneToOne(() => HealthProfile, (profile) => profile.user)
   healthProfile: HealthProfile;

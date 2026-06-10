@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        final token = data['token'];
+        final token = data['access_token'] ?? data['token'];
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${_t[_language]!['signIn']} Successful!')),
@@ -117,8 +117,8 @@ class _LoginPageState extends State<LoginPage> {
                     bottomLeft: Radius.circular(12),
                     bottomRight: Radius.circular(12),
                   ),
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1760368104825-95f28a86118e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGhlYWx0aHklMjBpbmdyZWRpZW50cyUyMGNvbG9yZnVsfGVufDF8fHx8MTc3NDU1NjQyOHww&ixlib=rb-4.1.0&q=80&w=1080',
+                  child: Image.asset(
+                    'assets/images/splash.jpg',
                     height: topHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,

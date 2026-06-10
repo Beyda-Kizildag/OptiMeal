@@ -7,6 +7,11 @@ import { RunnableSequence, RunnablePassthrough } from '@langchain/core/runnables
 import { Document } from '@langchain/core/documents';
 import { HealthService } from '../health/health.service';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ChatHistory, ChatRole } from './entities/chat-history.entity';
+import { AiMemory } from './entities/ai-memory.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class AiService implements OnModuleInit {
@@ -17,6 +22,9 @@ export class AiService implements OnModuleInit {
   constructor(
     private readonly healthService: HealthService,
     private readonly configService: ConfigService,
+    @InjectRepository(ChatHistory) private chatHistoryRepo: Repository<ChatHistory>,
+    @InjectRepository(AiMemory) private aiMemoryRepo: Repository<AiMemory>,
+    @InjectRepository(User) private userRepo: Repository<User>,
   ) {
     this.embeddings = new GoogleGenerativeAIEmbeddings({
       apiKey: this.configService.get<string>('GEMINI_API_KEY'),
@@ -56,17 +64,43 @@ export class AiService implements OnModuleInit {
     ]);
   }
 
-  async chat(userId: string, message: string, history?: { role: string; content: string }[]): Promise<string> {
+  async getChatHistory(userId: string): Promise<ChatHistory[]> {
+    return this.chatHistoryRepo.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async clearChatHistory(userId: string): Promise<void> {
+    await this.chatHistoryRepo.delete({ user: { id: userId } });
+  }
+
+  async getMemories(userId: string): Promise<AiMemory[]> {
+    return this.aiMemoryRepo.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } });
+  }
+
+  async deleteMemory(memoryId: string): Promise<void> {
+    await this.aiMemoryRepo.delete(memoryId);
+  }
+
+  async chat(userId: string, message: string): Promise<string> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
     const profile = await this.healthService.getProfile(userId);
     
+    // Save user message to history
+    await this.chatHistoryRepo.save({ user, role: ChatRole.USER, content: message });
+
     // Format user profile
     const diseases = profile.chronicDiseases?.join(', ') || 'None';
     const intolerances = profile.intolerances?.join(', ') || 'None';
     const profileContext = `User Profile - Diseases: ${diseases}, Intolerances: ${intolerances}`;
 
+    // Load history from DB
+    const chatHistory = await this.getChatHistory(userId);
     let historyText = 'No previous chat history.';
-    if (history && history.length > 0) {
-      historyText = history.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join('\n');
+    if (chatHistory.length > 0) {
+      historyText = chatHistory.map(h => `${h.role === ChatRole.USER ? 'User' : 'Assistant'}: ${h.content}`).join('\n');
     }
 
     const prompt = PromptTemplate.fromTemplate(`
@@ -101,13 +135,19 @@ Helpful Answer:`);
       new StringOutputParser(),
     ]);
 
-    return await chain.invoke(message);
+    const answer = await chain.invoke(message);
+
+    // Save assistant response to history
+    await this.chatHistoryRepo.save({ user, role: ChatRole.ASSISTANT, content: answer });
+
+    return answer;
   }
 
-  async generateRecipe(userId: string): Promise<any> {
+  async generateRecipe(userId: string, lang: string = 'tr'): Promise<any> {
     const profile = await this.healthService.getProfile(userId);
     const diseases = profile.chronicDiseases?.join(', ') || 'None';
     const intolerances = profile.intolerances?.join(', ') || 'None';
+    const targetLanguage = lang === 'tr' ? 'Turkish' : 'English';
     
     const promptText = `
 You are an expert nutritionist AI. Generate a personalized, healthy recipe for a user with the following profile:
@@ -115,6 +155,8 @@ Diseases: ${diseases}
 Intolerances: ${intolerances}
 
 Ensure the recipe is strictly safe for their conditions and intolerances.
+IMPORTANT: You MUST generate the recipe title, time, tags, and description entirely in the ${targetLanguage} language!
+
 Respond ONLY with a valid JSON object matching this structure (no markdown tags, just the raw JSON object):
 {
   "title": "Recipe Name",
